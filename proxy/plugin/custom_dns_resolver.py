@@ -11,8 +11,10 @@
     .. spelling::
 
        dns
+    using dnspython module dont forget to install first   
 """
 import socket
+import dns.resolver
 from typing import Tuple, Optional
 
 from ..http.proxy import HttpProxyBasePlugin
@@ -33,8 +35,23 @@ class CustomDnsResolverPlugin(HttpProxyBasePlugin):
         upstream server.
         """
         try:
-            return socket.getaddrinfo(host, port, proto=socket.IPPROTO_TCP)[0][4][0], None
+            """return socket.getaddrinfo(host, port, proto=socket.IPPROTO_TCP)[0][4][0], None
         except socket.gaierror:
             # Ideally we can also thrown HttpRequestRejected or HttpProtocolException here
             # Returning None simply fallback to core generated exceptions.
             return None, None
+"""
+            lo_resolver = dns.resolver.Resolver()
+            
+            """This is my dns resolver"""
+            lo_resolver.nameservers = ['1.1.1.1']
+
+            lt_answers = my_resolver.query( host )
+            lt_nameservers = [ns.to_text() for ns in lt_answers]
+            if len(lt_nameservers) == 0:
+                return None, None
+            # TODO: Utilize TTL to cache response locally
+            # instead of making a DNS query repeatedly for the same host.
+            return lt_nameservers[0], None
+        except socket.gaierror:
+            return None, None        
